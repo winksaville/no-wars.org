@@ -1,2 +1,5 @@
-version = "0.1.0"
+version = "0.2.0"
 title = "no-wars.org"
+bind = "127.0.0.1"
+port = 8080
+db_path = "data/no-wars.db"

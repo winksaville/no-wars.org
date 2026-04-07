@@ -1,0 +1,15 @@
+[package]
+name = "no-wars"
+version = "0.2.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8"
+rusqlite = { version = "0.35", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+toml = "0.8"
+tower-http = { version = "0.6", features = ["fs"] }
+uuid = { version = "1", features = ["v4"] }
+sha2 = "0.10"

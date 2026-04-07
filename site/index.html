@@ -9,6 +9,7 @@
       margin: 0;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: Georgia, serif;
@@ -19,10 +20,92 @@
       font-size: 3rem;
       text-align: center;
       padding: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .visitor-count {
+      font-size: 1.2rem;
+      color: #555;
+      margin-bottom: 2rem;
+    }
+    .vote-row {
+      display: flex;
+      gap: 3rem;
+      align-items: center;
+    }
+    .vote-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      background: none;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      padding: 0.8rem 1.5rem;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .vote-btn:hover {
+      border-color: #888;
+      background: #f5f5f5;
+    }
+    .vote-btn.active-up {
+      border-color: #2e7d32;
+      background: #e8f5e9;
+    }
+    .vote-btn.active-down {
+      border-color: #c62828;
+      background: #ffebee;
+    }
+    .vote-count {
+      font-size: 1rem;
+      font-family: sans-serif;
+      color: #333;
     }
   </style>
 </head>
 <body>
   <h1>Do not attack Iran</h1>
+  <div class="visitor-count">Visitors: <span id="visitors">—</span></div>
+  <div class="vote-row">
+    <button class="vote-btn" id="btn-up" onclick="vote('up')">
+      <span>👍</span>
+      <span class="vote-count" id="count-up">—</span>
+    </button>
+    <button class="vote-btn" id="btn-down" onclick="vote('down')">
+      <span>👎</span>
+      <span class="vote-count" id="count-down">—</span>
+    </button>
+  </div>
+  <script>
+    function updateUI(data) {
+      document.getElementById('visitors').textContent = data.visitors;
+      document.getElementById('count-up').textContent = data.thumbs_up;
+      document.getElementById('count-down').textContent = data.thumbs_down;
+
+      const btnUp = document.getElementById('btn-up');
+      const btnDown = document.getElementById('btn-down');
+      btnUp.className = 'vote-btn' + (data.user_vote === 'up' ? ' active-up' : '');
+      btnDown.className = 'vote-btn' + (data.user_vote === 'down' ? ' active-down' : '');
+    }
+
+    async function loadStats() {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      updateUI(data);
+    }
+
+    async function vote(direction) {
+      const res = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vote: direction }),
+      });
+      const data = await res.json();
+      updateUI(data);
+    }
+
+    loadStats();
+  </script>
 </body>
 </html>

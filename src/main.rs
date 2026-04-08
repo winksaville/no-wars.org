@@ -41,6 +41,7 @@ struct VoteRequest {
 }
 
 fn init_db(conn: &Connection) {
+    println!("init_db: enter");
     conn.execute_batch(
         "CREATE TABLE IF NOT EXISTS visitors (
             id TEXT PRIMARY KEY,
@@ -50,9 +51,12 @@ fn init_db(conn: &Connection) {
         );",
     )
     .expect("failed to initialize database");
+    println!("init_db: exit");
 }
 
 fn visitor_id(headers: &HeaderMap) -> (Option<String>, String) {
+    println!("visitor_id: enter");
+
     // Check for existing cookie
     let cookie_id = headers
         .get("cookie")
@@ -79,6 +83,7 @@ fn visitor_id(headers: &HeaderMap) -> (Option<String>, String) {
     hasher.update(ua.as_bytes());
     let fingerprint = format!("{:x}", hasher.finalize());
 
+    println!("visitor_id: exit cookie_id={cookie_id:?}, fingerprint={fingerprint:?}");
     (cookie_id, fingerprint)
 }
 
@@ -171,6 +176,7 @@ async fn post_vote(
     headers: HeaderMap,
     Json(body): Json<VoteRequest>,
 ) -> impl IntoResponse {
+    println!("post_vote: enter");
     if body.vote != "up" && body.vote != "down" {
         return (StatusCode::BAD_REQUEST, "invalid vote").into_response();
     }
@@ -198,6 +204,7 @@ async fn post_vote(
         (new_vote, &vid),
     )
     .expect("failed to update vote");
+    println!("post_vote: new_vote={new_vote:?}");
 
     let cookie = format!("nw_id={vid}; Path=/; Max-Age=31536000; SameSite=Lax");
     let mut resp_headers = HeaderMap::new();
@@ -222,6 +229,7 @@ async fn post_vote(
         )
         .unwrap_or(0);
 
+    println!("post_vote: exit visitors={visitors:?}, thumbs_up={thumbs_up:?}, thumbs_down={thumbs_down:?}");
     (
         resp_headers,
         Json(Stats {
@@ -236,9 +244,12 @@ async fn post_vote(
 
 #[tokio::main]
 async fn main() {
+    println!("main: enter");
+
     let config_str =
         fs::read_to_string("site/config.toml").expect("failed to read site/config.toml");
     let config: Config = toml::from_str(&config_str).expect("failed to parse config");
+    println!("main: config_str={config_str:?}");
 
     // Ensure DB directory exists
     if let Some(parent) = PathBuf::from(&config.db_path).parent() {
@@ -267,4 +278,6 @@ async fn main() {
         .await
         .expect("failed to bind");
     axum::serve(listener, app).await.expect("server error");
+
+    println!("main: exit");
 }
